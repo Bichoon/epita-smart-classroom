@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7fb">
+  <meta name="description" content="EPITA Smart Classroom — audit visuel des équipements d'une salle de cours.">
+  <title>EPITA Smart Classroom | Audit de salle</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="EPITA Smart Classroom, accueil"><span class="brand-mark">E</span><span><strong>EPITA</strong><small>SMART CLASSROOM</small></span></a>
+    <div class="header-center"><span class="live-dot"></span><span id="model-status">Préparation du modèle de vision…</span></div>
+    <button id="report-btn" class="button button-quiet" disabled>Rapport d’audit <span aria-hidden="true">↗</span></button>
+  </header>
+
+  <main id="top" class="page">
+    <section class="intro">
+      <div class="intro-copy"><p class="eyebrow">AUDIT VISUEL · MOBILIER & ÉQUIPEMENTS</p><h1>Une salle prête<br>pour le prochain cours.</h1><p class="intro-text">Analysez une photo ou un instantané de la caméra avec un moteur hybride : COCO-SSD pour les objets courants et un détecteur zero-shot complémentaire pour les catégories difficiles.</p></div>
+      <div class="intro-note"><span class="note-icon">i</span><div><strong>Respect de la vie privée</strong><p>Cadrez uniquement le mobilier et les équipements. N’analysez aucune image contenant une personne. Les images restent dans le navigateur et ne sont pas enregistrées.</p></div></div>
+    </section>
+
+    <section class="steps" aria-label="Étapes de l’audit"><div class="step active"><span>1</span><div><strong>Choisir une image</strong><small>Photo ou caméra</small></div></div><span class="step-line"></span><div class="step"><span>2</span><div><strong>Analyser</strong><small>Détections réelles</small></div></div><span class="step-line"></span><div class="step"><span>3</span><div><strong>Vérifier</strong><small>Écarts & rapport</small></div></div></section>
+
+    <section class="main-grid">
+      <article class="card capture-card">
+        <div class="card-heading"><div><p class="eyebrow">ÉTAPE 01</p><h2>Source de l’analyse</h2></div><span class="tag" id="source-tag">Aucune source</span></div>
+        <div class="source-switch" role="group" aria-label="Choisir la source"><button class="source-choice selected" id="upload-tab" type="button">↑ Importer une photo</button><button class="source-choice" id="camera-tab" type="button">◎ Utiliser la caméra</button></div>
+        <div class="preview" id="preview">
+          <div class="empty-state" id="empty-state"><div class="empty-graphic"><span>＋</span><i></i><b></b></div><h3>Ajoutez une photo de la salle</h3><p>Privilégiez une image nette, bien éclairée, où les équipements sont visibles et non masqués.</p><label class="button button-primary" for="image-input">Choisir un fichier <span>→</span></label><small>JPG, PNG ou WEBP · Aucun envoi vers un serveur</small></div>
+          <div class="media-frame hidden" id="media-frame"><img id="image-preview" alt="Aperçu de la salle à auditer" class="hidden"><video id="camera-preview" autoplay playsinline muted class="hidden"></video><canvas id="detection-canvas" aria-hidden="true"></canvas><span class="preview-chip" id="preview-chip">Aperçu local</span></div>
+          <div class="camera-empty hidden" id="camera-empty"><span class="camera-icon">◎</span><strong>Caméra inactive</strong><p>Activez la caméra pour cadrer le mobilier et les équipements.</p><button id="camera-start" class="button button-primary" type="button">Démarrer la caméra</button></div>
+        </div>
+        <input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+        <div class="camera-actions hidden" id="camera-actions"><span id="camera-hint">Capturez une image fixe, vérifiez le cadrage, puis analysez-la.</span><div class="camera-action-buttons"><button id="camera-capture" class="button button-primary" type="button">Capturer l’image</button><button id="camera-stop" class="button button-outline" type="button">Arrêter la caméra</button></div></div>
+        <div class="privacy-check"><input id="privacy-confirm" type="checkbox"><label for="privacy-confirm"><strong>Je confirme que l’image est cadrée sans personne.</strong><span>Si une personne entre dans le champ, arrêtez l’analyse et recadrez avant de continuer.</span></label></div>
+        <div class="analysis-options"><div class="range-heading"><label for="confidence-range">Seuil de confiance</label><strong id="confidence-value">35 %</strong></div><input id="confidence-range" type="range" min="10" max="90" value="35"><div class="range-scale"><span>Plus de résultats</span><span>Plus strict</span></div></div>
+        <div class="primary-actions"><button id="analyze-btn" class="button button-primary button-large" type="button" disabled>Lancer l’analyse <span>→</span></button><button id="reset-btn" class="button button-quiet" type="button">Réinitialiser</button></div>
+        <p id="inline-status" class="inline-status" role="status" aria-live="polite">Le modèle se charge. Vous pourrez ensuite importer une image.</p>
+      </article>
+
+      <article class="card results-card">
+        <div class="card-heading"><div><p class="eyebrow">ÉTAPE 02</p><h2>Objets reconnus</h2></div><span class="count-tag" id="result-count">0 objet</span></div>
+        <p class="section-description">Seules les prédictions réellement retournées par les moteurs actifs sont affichées. Les personnes sont exclues des résultats.</p>
+        <div class="results-placeholder" id="results-placeholder"><div class="placeholder-symbol">⌕</div><strong>Les résultats apparaîtront ici</strong><p>Importez une photo, confirmez le cadrage, puis lancez l’analyse.</p></div>
+        <div id="results-list" class="results-list hidden"></div>
+        <div class="model-limit"><div class="limit-icon">!</div><div><strong>Limites du modèle</strong><p>COCO-SSD reste le moteur principal. En mode hybride, OWL-ViT complète l’analyse pour rechercher explicitement bureaux/tables de cours, moniteurs, tableaux blancs et fenêtres. Les résultats zero-shot restent indicatifs et doivent être contrôlés visuellement.</p></div></div>
+        <div class="detected-footer"><span>Moteurs : COCO-SSD + OWL-ViT à la demande</span><span id="analysis-duration">Aucune analyse réalisée</span></div>
+      </article>
+    </section>
+
+    <section class="card audit-card">
+      <div class="card-heading audit-heading"><div><p class="eyebrow">ÉTAPE 03</p><h2>Audit de la configuration</h2><p class="section-description">Les quantités attendues sont modifiables avec les boutons − / + ou au clavier. Un objet non détecté n’est pas automatiquement considéré comme absent.</p></div><span class="audit-status" id="global-status">En attente d’une analyse</span></div>
+      <div class="kpi-grid"><div class="kpi"><span>Objets détectés</span><strong id="metric-objects">—</strong><small>Après application du seuil</small></div><div class="kpi"><span>Catégories reconnues</span><strong id="metric-categories">—</strong><small>Classes réellement observées</small></div><div class="kpi"><span>Règles vérifiables</span><strong id="metric-rules">—</strong><small>Catégories prises en charge</small></div><div class="kpi"><span>Écarts observés</span><strong id="metric-gaps">—</strong><small>Quantité observée différente</small></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Équipement attendu</th><th>Quantité attendue</th><th>Quantité observée</th><th>Écart</th><th>Vérification</th></tr></thead><tbody id="audit-table-body"><tr><td colspan="5" class="table-empty">Lancez une analyse pour remplir ce tableau.</td></tr></tbody></table></div>
+      <p class="table-footnote"><span>ⓘ</span> Les valeurs initiales sont des exemples fictifs. L’analyse est une aide au contrôle, pas une preuve d’absence.</p>
+    </section>
+
+    <section class="bottom-grid"><article class="card"><p class="eyebrow">MÉTHODE</p><h2>Comment obtenir un meilleur résultat ?</h2><ol class="tips"><li><span>01</span><div><strong>Cadrez la salle</strong><p>Montrez les équipements sans personne, avec une bonne lumière et le moins d’obstacles possible.</p></div></li><li><span>02</span><div><strong>Analysez une seule vue</strong><p>Une photo d’ensemble peut manquer les objets petits, cachés ou trop éloignés. Faites un second audit si nécessaire.</p></div></li><li><span>03</span><div><strong>Vérifiez les limites</strong><p>Les catégories non prises en charge doivent être contrôlées manuellement.</p></div></li></ol></article><article class="card report-card"><p class="eyebrow">LIVRABLE</p><h2>Compte rendu d’audit</h2><p>Le rapport reprend le contexte, les détections, les quantités attendues et observées, les écarts, les limites du modèle et les recommandations.</p><button id="report-btn-bottom" class="button button-primary" type="button" disabled>Générer le rapport <span>↗</span></button><small>Impression ou export PDF depuis le navigateur.</small></article></section>
+    <footer class="site-footer"><span><strong>EPITA Smart Classroom</strong> · Projet pédagogique IA for Managers</span><span>Analyse locale · Aucune image ou vidéo enregistrée</span></footer>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js" crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+</body>
+</html>
